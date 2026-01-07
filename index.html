@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Calculadora ISR 2026</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+body{font-family:Arial,Helvetica,sans-serif;background:#f2f2f2;padding:20px}
+.container{background:#fff;max-width:800px;margin:auto;padding:25px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,.1)}
+h1{text-align:center}
+label{font-weight:bold;margin-top:12px;display:block}
+input,select{width:100%;padding:8px;margin-top:5px}
+button{margin-top:20px;width:100%;padding:12px;font-size:16px;cursor:pointer}
+.resultado{margin-top:20px;background:#f9f9f9;padding:15px;border-radius:6px}
+small{color:#555}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>Calculadora ISR 2026</h1>
+
+<label>Periodo de pago</label>
+<select id="periodo">
+<option value="diario">Diario</option>
+<option value="semanal">Semanal</option>
+<option value="quincenal">Quincenal</option>
+<option value="mensual" selected>Mensual</option>
+<option value="anual">Anual</option>
+</select>
+
+<label>Ingreso ordinario</label>
+<input type="number" id="ingreso" placeholder="Ej. 15000">
+
+<label>Ingreso extraordinario (opcional)</label>
+<input type="number" id="extra" placeholder="Aguinaldo, PTU, prima vacacional">
+
+<label>
+<input type="checkbox" id="art174"> Aplicar Artículo 174 del Reglamento ISR
+</label>
+
+<button onclick="calcularISR()">Calcular ISR</button>
+
+<div class="resultado" id="resultado"></div>
+</div>
+
+<script>
+const tablaISR=[
+{li:0.01,ls:844.59,cuota:0,pct:1.92},
+{li:844.6,ls:7168.51,cuota:16.22,pct:6.4},
+{li:7168.52,ls:12564.44,cuota:421.62,pct:10.88},
+{li:12564.45,ls:14618.03,cuota:998.77,pct:16},
+{li:14618.04,ls:17429.88,cuota:1328.68,pct:17.92},
+{li:17429.89,ls:34999.99,cuota:1826.84,pct:21.36},
+{li:35000,ls:999999999,cuota:5596.91,pct:23.52}
+];
+
+const factor={diario:30.4,semanal:4.3333,quincenal:2,mensual:1,anual:1/12};
+
+function isr(base){
+const r=tablaISR.find(t=>base>=t.li&&base<=t.ls);
+return r?r.cuota+(base-r.li)*r.pct/100:0;
+}
+
+function calcularISR(){
+const p=document.getElementById('periodo').value;
+const ing=parseFloat(document.getElementById('ingreso').value)||0;
+const ext=parseFloat(document.getElementById('extra').value)||0;
+const a174=document.getElementById('art174').checked;
+
+const mensual=ing*factor[p];
+const isrOrd=isr(mensual);
+let isrExt=0;
+
+if(ext>0){
+ if(a174){
+  const m=(ext/365)*30.4;
+  isrExt=isr(mensual+m)-isrOrd;
+ }else{
+  isrExt=isr(mensual+ext)-isrOrd;
+ }
+}
+
+document.getElementById('resultado').innerHTML=
+`Ingreso mensual equivalente: $${mensual.toFixed(2)}<br>
+ISR ordinario: $${isrOrd.toFixed(2)}<br>
+ISR extraordinario: $${isrExt.toFixed(2)}<br><br>
+<strong>ISR total: $${(isrOrd+isrExt).toFixed(2)}</strong>`;
+}
+</script>
+
+</body>
+</html>
+
