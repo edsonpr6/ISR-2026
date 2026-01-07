@@ -1,94 +1,100 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<title>Calculadora ISR 2026</title>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-body{font-family:Arial,Helvetica,sans-serif;background:#f2f2f2;padding:20px}
-.container{background:#fff;max-width:800px;margin:auto;padding:25px;border-radius:10px;box-shadow:0 0 10px rgba(0,0,0,.1)}
-h1{text-align:center}
-label{font-weight:bold;margin-top:12px;display:block}
-input,select{width:100%;padding:8px;margin-top:5px}
-button{margin-top:20px;width:100%;padding:12px;font-size:16px;cursor:pointer}
-.resultado{margin-top:20px;background:#f9f9f9;padding:15px;border-radius:6px}
-small{color:#555}
-</style>
-</head>
-<body>
-
-<div class="container">
-<h1>Calculadora ISR 2026</h1>
-
-<label>Periodo de pago</label>
-<select id="periodo">
-<option value="diario">Diario</option>
-<option value="semanal">Semanal</option>
-<option value="quincenal">Quincenal</option>
-<option value="mensual" selected>Mensual</option>
-<option value="anual">Anual</option>
-</select>
-
-<label>Ingreso ordinario</label>
-<input type="number" id="ingreso" placeholder="Ej. 15000">
-
-<label>Ingreso extraordinario (opcional)</label>
-<input type="number" id="extra" placeholder="Aguinaldo, PTU, prima vacacional">
-
-<label>
-<input type="checkbox" id="art174"> Aplicar Artículo 174 del Reglamento ISR
-</label>
-
-<button onclick="calcularISR()">Calcular ISR</button>
-
-<div class="resultado" id="resultado"></div>
-</div>
-
 <script>
-const tablaISR=[
-{li:0.01,ls:844.59,cuota:0,pct:1.92},
-{li:844.6,ls:7168.51,cuota:16.22,pct:6.4},
-{li:7168.52,ls:12564.44,cuota:421.62,pct:10.88},
-{li:12564.45,ls:14618.03,cuota:998.77,pct:16},
-{li:14618.04,ls:17429.88,cuota:1328.68,pct:17.92},
-{li:17429.89,ls:34999.99,cuota:1826.84,pct:21.36},
-{li:35000,ls:999999999,cuota:5596.91,pct:23.52}
-];
+/*************************************************
+ * TABLAS ISR 2026 – OFICIALES
+ *************************************************/
+const tablasISR = {
+  semanal: [
+    { li: 0.01, ls: 194.46, cuota: 0.00, pct: 0.0192 },
+    { li: 194.47, ls: 1650.67, cuota: 3.71, pct: 0.0640 },
+    { li: 1650.68, ls: 2900.87, cuota: 96.95, pct: 0.1088 },
+    { li: 2900.88, ls: 3372.11, cuota: 232.96, pct: 0.1600 },
+    { li: 3372.12, ls: 4037.32, cuota: 308.35, pct: 0.1792 },
+    { li: 4037.33, ls: 8142.75, cuota: 427.56, pct: 0.2136 },
+    { li: 8142.76, ls: 12834.08, cuota: 1304.45, pct: 0.2352 },
+    { li: 12834.09, ls: 24502.45, cuota: 2407.86, pct: 0.3000 },
+    { li: 24502.46, ls: 32669.91, cuota: 5908.35, pct: 0.3200 },
+    { li: 32669.92, ls: 98009.66, cuota: 8521.94, pct: 0.3400 },
+    { li: 98009.67, ls: Infinity, cuota: 30737.49, pct: 0.3500 }
+  ],
 
-const factor={diario:30.4,semanal:4.3333,quincenal:2,mensual:1,anual:1/12};
+  quincenal: [
+    { li: 0.01, ls: 416.70, cuota: 0.00, pct: 0.0192 },
+    { li: 416.71, ls: 3537.15, cuota: 7.95, pct: 0.0640 },
+    { li: 3537.16, ls: 6216.15, cuota: 207.75, pct: 0.1088 },
+    { li: 6216.16, ls: 7225.95, cuota: 499.20, pct: 0.1600 },
+    { li: 7225.96, ls: 8651.40, cuota: 660.75, pct: 0.1792 },
+    { li: 8651.41, ls: 17448.75, cuota: 916.20, pct: 0.2136 },
+    { li: 17448.76, ls: 27501.60, cuota: 2795.25, pct: 0.2352 },
+    { li: 27501.61, ls: 52505.25, cuota: 5159.70, pct: 0.3000 },
+    { li: 52505.26, ls: 70006.95, cuota: 12660.75, pct: 0.3200 },
+    { li: 70006.96, ls: 210020.70, cuota: 18261.30, pct: 0.3400 },
+    { li: 210020.71, ls: Infinity, cuota: 65866.05, pct: 0.3500 }
+  ],
 
-function isr(base){
-const r=tablaISR.find(t=>base>=t.li&&base<=t.ls);
-return r?r.cuota+(base-r.li)*r.pct/100:0;
+  mensual: [
+    { li: 0.01, ls: 844.59, cuota: 0.00, pct: 0.0192 },
+    { li: 844.60, ls: 7168.51, cuota: 16.22, pct: 0.0640 },
+    { li: 7168.52, ls: 12598.02, cuota: 420.95, pct: 0.1088 },
+    { li: 12598.03, ls: 14644.64, cuota: 1011.68, pct: 0.1600 },
+    { li: 14644.65, ls: 17533.64, cuota: 1339.14, pct: 0.1792 },
+    { li: 17533.65, ls: 35362.83, cuota: 1856.84, pct: 0.2136 },
+    { li: 35362.84, ls: 55736.68, cuota: 5665.16, pct: 0.2352 },
+    { li: 55736.69, ls: 106410.50, cuota: 10457.09, pct: 0.3000 },
+    { li: 106410.51, ls: 141880.66, cuota: 25659.23, pct: 0.3200 },
+    { li: 141880.67, ls: 425641.99, cuota: 37009.69, pct: 0.3400 },
+    { li: 425642.00, ls: Infinity, cuota: 133488.54, pct: 0.3500 }
+  ]
+};
+
+/*************************************************
+ * SUBSIDIO AL EMPLEO 2026 – MONTO OFICIAL
+ *************************************************/
+const subsidioMensual = 536.22;
+const diasPeriodo = {
+  semanal: 7,
+  quincenal: 15,
+  mensual: 30.4
+};
+
+/*************************************************
+ * FUNCIONES
+ *************************************************/
+function obtenerTramo(tabla, base) {
+  return tabla.find(t => base >= t.li && base <= t.ls);
 }
 
-function calcularISR(){
-const p=document.getElementById('periodo').value;
-const ing=parseFloat(document.getElementById('ingreso').value)||0;
-const ext=parseFloat(document.getElementById('extra').value)||0;
-const a174=document.getElementById('art174').checked;
+function calcularISR() {
+  const base = parseFloat(document.getElementById("base").value);
+  const periodo = document.getElementById("periodo").value;
 
-const mensual=ing*factor[p];
-const isrOrd=isr(mensual);
-let isrExt=0;
+  if (isNaN(base) || base <= 0) {
+    alert("Capture una base gravable válida");
+    return;
+  }
 
-if(ext>0){
- if(a174){
-  const m=(ext/365)*30.4;
-  isrExt=isr(mensual+m)-isrOrd;
- }else{
-  isrExt=isr(mensual+ext)-isrOrd;
- }
-}
+  const tramo = obtenerTramo(tablasISR[periodo], base);
+  if (!tramo) {
+    alert("Base fuera de rango");
+    return;
+  }
 
-document.getElementById('resultado').innerHTML=
-`Ingreso mensual equivalente: $${mensual.toFixed(2)}<br>
-ISR ordinario: $${isrOrd.toFixed(2)}<br>
-ISR extraordinario: $${isrExt.toFixed(2)}<br><br>
-<strong>ISR total: $${(isrOrd+isrExt).toFixed(2)}</strong>`;
+  const isrCausado =
+    tramo.cuota + (base - tramo.li) * tramo.pct;
+
+  const subsidio =
+    periodo === "mensual"
+      ? subsidioMensual
+      : (subsidioMensual / 30.4) * diasPeriodo[periodo];
+
+  let isrRetener = isrCausado - subsidio;
+  if (isrRetener < 0) isrRetener = 0;
+
+  document.getElementById("resultado").innerHTML = `
+    <p><strong>Base gravable:</strong> $${base.toFixed(2)}</p>
+    <p><strong>ISR causado:</strong> $${isrCausado.toFixed(2)}</p>
+    <p><strong>Subsidio al empleo 2026:</strong> $${subsidio.toFixed(2)}</p>
+    <p><strong>ISR a retener:</strong> $${isrRetener.toFixed(2)}</p>
+  `;
 }
 </script>
-
-</body>
-</html>
 
