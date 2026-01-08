@@ -1,122 +1,128 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Calculadora ISR 2026</title>
-
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      max-width: 700px;
-      margin: 40px auto;
-      background: #f5f5f5;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-    }
-    label {
-      display: block;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    input, select, button {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      font-size: 16px;
-    }
-    button {
-      margin-top: 20px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #1e40af;
-    }
-    #resultado {
-      margin-top: 25px;
-      background: white;
-      padding: 15px;
-      border: 1px solid #ccc;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Calculadora ISR 2026</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    max-width: 720px;
+    margin: 30px auto;
+    padding: 20px;
+  }
+  label, select, input, button {
+    display: block;
+    margin-top: 12px;
+    width: 100%;
+  }
+  button {
+    margin-top: 20px;
+    padding: 10px;
+    font-size: 16px;
+  }
+  #resultado {
+    margin-top: 25px;
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 6px;
+  }
+</style>
 </head>
 
 <body>
 
-<h1>Calculadora ISR 2026</h1>
+<h2>Calculadora ISR 2026 (con Subsidio)</h2>
 
-<label>Base gravable del periodo</label>
-<input type="number" id="base" step="0.01" placeholder="Ej. 3500">
+<label>Base gravable</label>
+<input type="number" id="base" step="0.01" placeholder="Ej. 2500.00">
 
 <label>Periodicidad</label>
 <select id="periodo">
+  <option value="diario">Diario</option>
   <option value="semanal">Semanal</option>
   <option value="quincenal">Quincenal</option>
   <option value="mensual">Mensual</option>
 </select>
 
-<button onclick="calcularISR()">Calcular ISR</button>
+<button onclick="calcularISR()">Calcular</button>
 
 <div id="resultado"></div>
 
 <script>
 /*************************************************
- * TABLAS ISR 2026 – OFICIALES
+ * TABLAS ISR 2026
  *************************************************/
 const tablasISR = {
+  diario: [
+    { li: 0.01, ls: 27.78, cuota: 0, pct: 0.0192 },
+    { li: 27.79, ls: 235.81, cuota: 0.53, pct: 0.064 },
+    { li: 235.82, ls: 414.41, cuota: 13.85, pct: 0.1088 },
+    { li: 414.42, ls: 482.80, cuota: 33.28, pct: 0.16 },
+    { li: 482.81, ls: 579.68, cuota: 44.08, pct: 0.1792 },
+    { li: 579.69, ls: 1168.21, cuota: 61.05, pct: 0.2136 },
+    { li: 1168.22, ls: 1846.69, cuota: 185.37, pct: 0.2352 },
+    { li: 1846.70, ls: 3520.44, cuota: 341.85, pct: 0.30 },
+    { li: 3520.45, ls: 4694.52, cuota: 840.16, pct: 0.32 },
+    { li: 4694.53, ls: 14083.61, cuota: 1208.60, pct: 0.34 },
+    { li: 14083.62, ls: Infinity, cuota: 4303.80, pct: 0.35 }
+  ],
+
   semanal: [
-    { li: 0.01, ls: 194.46, cuota: 0.00, pct: 0.0192 },
-    { li: 194.47, ls: 1650.67, cuota: 3.71, pct: 0.0640 },
+    { li: 0.01, ls: 194.46, cuota: 0, pct: 0.0192 },
+    { li: 194.47, ls: 1650.67, cuota: 3.71, pct: 0.064 },
     { li: 1650.68, ls: 2900.87, cuota: 96.95, pct: 0.1088 },
-    { li: 2900.88, ls: 3372.11, cuota: 232.96, pct: 0.1600 },
+    { li: 2900.88, ls: 3372.11, cuota: 232.96, pct: 0.16 },
     { li: 3372.12, ls: 4037.32, cuota: 308.35, pct: 0.1792 },
     { li: 4037.33, ls: 8142.75, cuota: 427.56, pct: 0.2136 },
     { li: 8142.76, ls: 12834.08, cuota: 1304.45, pct: 0.2352 },
-    { li: 12834.09, ls: 24502.45, cuota: 2407.86, pct: 0.3000 },
-    { li: 24502.46, ls: 32669.91, cuota: 5908.35, pct: 0.3200 },
-    { li: 32669.92, ls: 98009.66, cuota: 8521.94, pct: 0.3400 },
-    { li: 98009.67, ls: Infinity, cuota: 30737.49, pct: 0.3500 }
+    { li: 12834.09, ls: 24502.45, cuota: 2407.86, pct: 0.30 },
+    { li: 24502.46, ls: 32669.91, cuota: 5908.35, pct: 0.32 },
+    { li: 32669.92, ls: 98009.66, cuota: 8521.94, pct: 0.34 },
+    { li: 98009.67, ls: Infinity, cuota: 30737.49, pct: 0.35 }
   ],
 
   quincenal: [
-    { li: 0.01, ls: 416.70, cuota: 0.00, pct: 0.0192 },
-    { li: 416.71, ls: 3537.15, cuota: 7.95, pct: 0.0640 },
+    { li: 0.01, ls: 416.70, cuota: 0, pct: 0.0192 },
+    { li: 416.71, ls: 3537.15, cuota: 7.95, pct: 0.064 },
     { li: 3537.16, ls: 6216.15, cuota: 207.75, pct: 0.1088 },
-    { li: 6216.16, ls: 7225.95, cuota: 499.20, pct: 0.1600 },
+    { li: 6216.16, ls: 7225.95, cuota: 499.20, pct: 0.16 },
     { li: 7225.96, ls: 8651.40, cuota: 660.75, pct: 0.1792 },
     { li: 8651.41, ls: 17448.75, cuota: 916.20, pct: 0.2136 },
     { li: 17448.76, ls: 27501.60, cuota: 2795.25, pct: 0.2352 },
-    { li: 27501.61, ls: 52505.25, cuota: 5159.70, pct: 0.3000 },
-    { li: 52505.26, ls: 70006.95, cuota: 12660.75, pct: 0.3200 },
-    { li: 70006.96, ls: 210020.70, cuota: 18261.30, pct: 0.3400 },
-    { li: 210020.71, ls: Infinity, cuota: 65866.05, pct: 0.3500 }
+    { li: 27501.61, ls: 52505.25, cuota: 5159.70, pct: 0.30 },
+    { li: 52505.26, ls: 70006.95, cuota: 12660.75, pct: 0.32 },
+    { li: 70006.96, ls: 210020.70, cuota: 18261.30, pct: 0.34 },
+    { li: 210020.71, ls: Infinity, cuota: 65866.05, pct: 0.35 }
   ],
 
   mensual: [
-    { li: 0.01, ls: 844.59, cuota: 0.00, pct: 0.0192 },
-    { li: 844.60, ls: 7168.51, cuota: 16.22, pct: 0.0640 },
+    { li: 0.01, ls: 844.59, cuota: 0, pct: 0.0192 },
+    { li: 844.60, ls: 7168.51, cuota: 16.22, pct: 0.064 },
     { li: 7168.52, ls: 12598.02, cuota: 420.95, pct: 0.1088 },
-    { li: 12598.03, ls: 14644.64, cuota: 1011.68, pct: 0.1600 },
+    { li: 12598.03, ls: 14644.64, cuota: 1011.68, pct: 0.16 },
     { li: 14644.65, ls: 17533.64, cuota: 1339.14, pct: 0.1792 },
     { li: 17533.65, ls: 35362.83, cuota: 1856.84, pct: 0.2136 },
     { li: 35362.84, ls: 55736.68, cuota: 5665.16, pct: 0.2352 },
-    { li: 55736.69, ls: 106410.50, cuota: 10457.09, pct: 0.3000 },
-    { li: 106410.51, ls: 141880.66, cuota: 25659.23, pct: 0.3200 },
-    { li: 141880.67, ls: 425641.99, cuota: 37009.69, pct: 0.3400 },
-    { li: 425642.00, ls: Infinity, cuota: 133488.54, pct: 0.3500 }
+    { li: 55736.69, ls: 106410.50, cuota: 10457.09, pct: 0.30 },
+    { li: 106410.51, ls: 141880.66, cuota: 25659.23, pct: 0.32 },
+    { li: 141880.67, ls: 425641.99, cuota: 37009.69, pct: 0.34 },
+    { li: 425642.00, ls: Infinity, cuota: 133488.54, pct: 0.35 }
   ]
 };
 
 /*************************************************
- * SUBSIDIO AL EMPLEO 2026 (PRORRATEADO Y REDONDEADO)
+ * SUBSIDIO 2026 – TOPES OFICIALES
  *************************************************/
-const subsidioMensual = 536.22;
-const diasPeriodo = { semanal: 7, quincenal: 15, mensual: 30.4 };
+const subsidio = {
+  diario:    { monto: 17.64,  ingresoMax: 378.05 },
+  semanal:   { monto: 123.47, ingresoMax: 2646.34 },
+  quincenal: { monto: 264.94, ingresoMax: 5670.16 },
+  mensual:   { monto: 536.22, ingresoMax: 11341.60 }
+};
 
+/*************************************************
+ * FUNCIONES
+ *************************************************/
 function obtenerTramo(tabla, base) {
   return tabla.find(t => base >= t.li && base <= t.ls);
 }
@@ -131,22 +137,26 @@ function calcularISR() {
   }
 
   const tramo = obtenerTramo(tablasISR[periodo], base);
+  if (!tramo) {
+    alert("Base fuera de rango");
+    return;
+  }
 
   const isrCausado =
     tramo.cuota + (base - tramo.li) * tramo.pct;
 
-  const subsidio = periodo === "mensual"
-    ? subsidioMensual
-    : Math.round(
-        (subsidioMensual / 30.4) * diasPeriodo[periodo] * 100
-      ) / 100;
+  let subsidioAplicar = 0;
+  if (base <= subsidio[periodo].ingresoMax) {
+    subsidioAplicar = subsidio[periodo].monto;
+  }
 
-  const isrRetener = Math.max(0, isrCausado - subsidio);
+  let isrRetener = isrCausado - subsidioAplicar;
+  if (isrRetener < 0) isrRetener = 0;
 
   document.getElementById("resultado").innerHTML = `
     <p><strong>Base gravable:</strong> $${base.toFixed(2)}</p>
     <p><strong>ISR causado:</strong> $${isrCausado.toFixed(2)}</p>
-    <p><strong>Subsidio al empleo 2026:</strong> $${subsidio.toFixed(2)}</p>
+    <p><strong>Subsidio 2026:</strong> $${subsidioAplicar.toFixed(2)}</p>
     <p><strong>ISR a retener:</strong> $${isrRetener.toFixed(2)}</p>
   `;
 }
