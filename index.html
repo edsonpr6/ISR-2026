@@ -81,6 +81,7 @@ const tablasISR = {
     { li: 32669.92, ls: 98009.66, cuota: 8521.94, pct: 0.3400 },
     { li: 98009.67, ls: Infinity, cuota: 30737.49, pct: 0.3500 }
   ],
+
   quincenal: [
     { li: 0.01, ls: 416.70, cuota: 0.00, pct: 0.0192 },
     { li: 416.71, ls: 3537.15, cuota: 7.95, pct: 0.0640 },
@@ -94,6 +95,7 @@ const tablasISR = {
     { li: 70006.96, ls: 210020.70, cuota: 18261.30, pct: 0.3400 },
     { li: 210020.71, ls: Infinity, cuota: 65866.05, pct: 0.3500 }
   ],
+
   mensual: [
     { li: 0.01, ls: 844.59, cuota: 0.00, pct: 0.0192 },
     { li: 844.60, ls: 7168.51, cuota: 16.22, pct: 0.0640 },
@@ -109,6 +111,9 @@ const tablasISR = {
   ]
 };
 
+/*************************************************
+ * SUBSIDIO AL EMPLEO 2026 (PRORRATEADO Y REDONDEADO)
+ *************************************************/
 const subsidioMensual = 536.22;
 const diasPeriodo = { semanal: 7, quincenal: 15, mensual: 30.4 };
 
@@ -126,18 +131,22 @@ function calcularISR() {
   }
 
   const tramo = obtenerTramo(tablasISR[periodo], base);
-  const isrCausado = tramo.cuota + (base - tramo.li) * tramo.pct;
+
+  const isrCausado =
+    tramo.cuota + (base - tramo.li) * tramo.pct;
 
   const subsidio = periodo === "mensual"
     ? subsidioMensual
-    : (subsidioMensual / 30.4) * diasPeriodo[periodo];
+    : Math.round(
+        (subsidioMensual / 30.4) * diasPeriodo[periodo] * 100
+      ) / 100;
 
   const isrRetener = Math.max(0, isrCausado - subsidio);
 
   document.getElementById("resultado").innerHTML = `
     <p><strong>Base gravable:</strong> $${base.toFixed(2)}</p>
     <p><strong>ISR causado:</strong> $${isrCausado.toFixed(2)}</p>
-    <p><strong>Subsidio 2026:</strong> $${subsidio.toFixed(2)}</p>
+    <p><strong>Subsidio al empleo 2026:</strong> $${subsidio.toFixed(2)}</p>
     <p><strong>ISR a retener:</strong> $${isrRetener.toFixed(2)}</p>
   `;
 }
