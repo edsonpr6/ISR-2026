@@ -1,4 +1,68 @@
-<!-- refresh pages -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Calculadora ISR 2026</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 40px auto;
+      background: #f5f5f5;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 20px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1e40af;
+    }
+    #resultado {
+      margin-top: 25px;
+      background: white;
+      padding: 15px;
+      border: 1px solid #ccc;
+    }
+  </style>
+</head>
+
+<body>
+
+<h1>Calculadora ISR 2026</h1>
+
+<label>Base gravable del periodo</label>
+<input type="number" id="base" step="0.01" placeholder="Ej. 3500">
+
+<label>Periodicidad</label>
+<select id="periodo">
+  <option value="semanal">Semanal</option>
+  <option value="quincenal">Quincenal</option>
+  <option value="mensual">Mensual</option>
+</select>
+
+<button onclick="calcularISR()">Calcular ISR</button>
+
+<div id="resultado"></div>
+
 <script>
 /*************************************************
  * TABLAS ISR 2026 – OFICIALES
@@ -17,7 +81,6 @@ const tablasISR = {
     { li: 32669.92, ls: 98009.66, cuota: 8521.94, pct: 0.3400 },
     { li: 98009.67, ls: Infinity, cuota: 30737.49, pct: 0.3500 }
   ],
-
   quincenal: [
     { li: 0.01, ls: 416.70, cuota: 0.00, pct: 0.0192 },
     { li: 416.71, ls: 3537.15, cuota: 7.95, pct: 0.0640 },
@@ -31,7 +94,6 @@ const tablasISR = {
     { li: 70006.96, ls: 210020.70, cuota: 18261.30, pct: 0.3400 },
     { li: 210020.71, ls: Infinity, cuota: 65866.05, pct: 0.3500 }
   ],
-
   mensual: [
     { li: 0.01, ls: 844.59, cuota: 0.00, pct: 0.0192 },
     { li: 844.60, ls: 7168.51, cuota: 16.22, pct: 0.0640 },
@@ -47,19 +109,9 @@ const tablasISR = {
   ]
 };
 
-/*************************************************
- * SUBSIDIO AL EMPLEO 2026 – MONTO OFICIAL
- *************************************************/
 const subsidioMensual = 536.22;
-const diasPeriodo = {
-  semanal: 7,
-  quincenal: 15,
-  mensual: 30.4
-};
+const diasPeriodo = { semanal: 7, quincenal: 15, mensual: 30.4 };
 
-/*************************************************
- * FUNCIONES
- *************************************************/
 function obtenerTramo(tabla, base) {
   return tabla.find(t => base >= t.li && base <= t.ls);
 }
@@ -74,28 +126,22 @@ function calcularISR() {
   }
 
   const tramo = obtenerTramo(tablasISR[periodo], base);
-  if (!tramo) {
-    alert("Base fuera de rango");
-    return;
-  }
+  const isrCausado = tramo.cuota + (base - tramo.li) * tramo.pct;
 
-  const isrCausado =
-    tramo.cuota + (base - tramo.li) * tramo.pct;
+  const subsidio = periodo === "mensual"
+    ? subsidioMensual
+    : (subsidioMensual / 30.4) * diasPeriodo[periodo];
 
-  const subsidio =
-    periodo === "mensual"
-      ? subsidioMensual
-      : (subsidioMensual / 30.4) * diasPeriodo[periodo];
-
-  let isrRetener = isrCausado - subsidio;
-  if (isrRetener < 0) isrRetener = 0;
+  const isrRetener = Math.max(0, isrCausado - subsidio);
 
   document.getElementById("resultado").innerHTML = `
     <p><strong>Base gravable:</strong> $${base.toFixed(2)}</p>
     <p><strong>ISR causado:</strong> $${isrCausado.toFixed(2)}</p>
-    <p><strong>Subsidio al empleo 2026:</strong> $${subsidio.toFixed(2)}</p>
+    <p><strong>Subsidio 2026:</strong> $${subsidio.toFixed(2)}</p>
     <p><strong>ISR a retener:</strong> $${isrRetener.toFixed(2)}</p>
   `;
 }
 </script>
 
+</body>
+</html>
